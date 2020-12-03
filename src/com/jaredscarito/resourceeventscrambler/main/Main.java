@@ -18,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final public class Main {
-	
 	private static String[] systemResources;
 	private static String[] fivemEvents;
 	private static String[] blacklistedFiles;
@@ -61,9 +60,12 @@ final public class Main {
 		ArrayList<String> blacklistedFiles = new ArrayList<>();
 		File f = new File("config");
 		if (!f.exists()) {
-			System.out.println("No Config Detected!  Creating Config.");
+			System.out.println("[ResourceEventScrambler] No Config Detected!  Creating Config.");
 			f = createNewFile();
-			
+			System.out.println(
+					"[ResourceEventScrambler] Created New Config file!  Please change configuration as needed and reexecute the program!");
+			System.exit(0);
+
 		}
 		BufferedReader reader = null;
 		try {
@@ -108,10 +110,11 @@ final public class Main {
 	private static File createNewFile() {
 		FileOutputStream fooStream = null;
 		try {
+			File f = new File("config");
 			f.createNewFile();
 			fooStream = new FileOutputStream(f, false);
 			InputStream inStream = getInternalConfigStream();
-			for(int data = inStream.read(); data != -1; data = inStream.read()) {
+			for (int data = inStream.read(); data != -1; data = inStream.read()) {
 				fooStream.write(data);
 			}
 			inStream.close();
