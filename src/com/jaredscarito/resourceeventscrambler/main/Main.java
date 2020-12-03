@@ -17,18 +17,10 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final public class Main {
-	
+public class Main {
 	private static String[] systemResources;
 	private static String[] fivemEvents;
 	private static String[] blacklistedFiles;
-	private static Main instance; // Used to call non-static events
-
-	// Private constructor to prevent instantiation more than once.
-
-	private Main() {
-		instance = this;
-	}
 
 	private static boolean isFivemEvent(String eventName) {
 		for (String fivemEvent : fivemEvents) {
@@ -62,8 +54,7 @@ final public class Main {
 		File f = new File("config");
 		if (!f.exists()) {
 			System.out.println("No Config Detected!  Creating Config.");
-			f = createNewFile();
-			
+			f = createNewFile(f);
 		}
 		BufferedReader reader = null;
 		try {
@@ -98,23 +89,89 @@ final public class Main {
 				}
 			}
 			Main.systemResources = systemResources.toArray(new String[systemResources.size()]);
-			Main.fivemEvents = fivemEvents.toArray(new String[fivemEvents.size()]);
-			Main.blacklistedFiles = blacklistedFiles.toArray(new String[blacklistedFiles.size()]);
+			Main.fivemEvents = (String[]) fivemEvents.toArray(new String[fivemEvents.size()]);
+			Main.blacklistedFiles = (String[]) blacklistedFiles.toArray(new String[blacklistedFiles.size()]);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static File createNewFile() {
+	private static File createNewFile(File f) {
 		FileOutputStream fooStream = null;
 		try {
 			f.createNewFile();
 			fooStream = new FileOutputStream(f, false);
-			InputStream inStream = getInternalConfigStream();
-			for(int data = inStream.read(); data != -1; data = inStream.read()) {
-				fooStream.write(data);
-			}
-			inStream.close();
+			StringBuilder builder = new StringBuilder();
+			// I am really not proud of this. I will look into improving at a later time.
+			builder.append("Blacklisted Resources:\n");
+			builder.append("#Add More Lines as needed.\n");
+			builder.append("# (These Resources will NOT be modified by the scrambler)\n");
+			builder.append("fivem\n");
+			builder.append("fivem-awesome1501\n");
+			builder.append("fivem-map-hipster\n");
+			builder.append("fivem-map-skater\n");
+			builder.append("runcode\n");
+			builder.append("race\n");
+			builder.append("race-test\n");
+			builder.append("channelfeed\n");
+			builder.append("irc\n");
+			builder.append("obituary\n");
+			builder.append("obituary-deaths\n");
+			builder.append("playernames\n");
+			builder.append("mapmanager\n");
+			builder.append("baseevents\n");
+			builder.append("chat\n");
+			builder.append("hardcap\n");
+			builder.append("rconlog\n");
+			builder.append("scoreboard\n");
+			builder.append("sessionmanager\n");
+			builder.append("spawnmanager\n");
+			builder.append("yarn\n");
+			builder.append("betaguns\n");
+			builder.append("gameInit\n");
+			builder.append("keks\n");
+			builder.append("mysql-async\n\n");
+			builder.append("Blacklisted Events:\n");
+			builder.append("playerConnecting\n");
+			builder.append("playerSpawned\n");
+			builder.append("playerDropped\n");
+			builder.append("onResourceListRefresh\n");
+			builder.append("weaponDamageEvent\n");
+			builder.append("entityRemoved\n");
+			builder.append("entityCreating\n");
+			builder.append("entityCreated\n");
+			builder.append("respawnPlayerPedEvent\n");
+			builder.append("explosionEvent\n");
+			builder.append("vehicleComponentControlEvent\n");
+			builder.append("playerEnteredScope\n");
+			builder.append("playerLeftScope\n");
+			builder.append("onClientResourceStart\n");
+			builder.append("onClientResourceStop\n");
+			builder.append("populationPedCreating\n");
+			builder.append("onClientMapStart\n");
+			builder.append("onClientGameTypeStart\n");
+			builder.append("onClientMapStop\n");
+			builder.append("onClientGameTypeStop\n");
+			builder.append("getMapDirectives\n");
+			builder.append("onPlayerDied\n");
+			builder.append("onPlayerKilled\n");
+			builder.append("baseevents:onPlayerDied\n");
+			builder.append("baseevents:onPlayerKilled\n");
+			builder.append("playerActivated\n");
+			builder.append("sessionInitialized\n");
+			builder.append("chatMessage\n");
+			builder.append("chat:addMessage\n");
+			builder.append("chat:addTemplate\n");
+			builder.append("chat:addSuggestion\n");
+			builder.append("chat:removeSuggestion\n");
+			builder.append("chat:clear\n");
+			builder.append("onResourceStart\n");
+			builder.append("onResourceStarting\n");
+			builder.append("onResourceStop\n");
+			builder.append("Blacklisted Files:\n");
+			builder.append(
+					"# These Files WILL NOT BE MODIFIED.  Use the relative file path starting AFTER the resources folder omitting any trailing slashes");
+			fooStream.write(builder.toString().getBytes());
 			fooStream.close();
 			return f;
 		} catch (IOException e) {
@@ -123,17 +180,11 @@ final public class Main {
 		}
 	}
 
-	private static InputStream getInternalConfigStream() throws IOException {
-		return instance.getClass().getClassLoader()
-				.getResourceAsStream("com/jaredscarito/resourceeventscrambler/config");
-	}
-
 	private static HashMap<String, String> keyVals = new HashMap<>();
 
 	public static void main(String[] args) {
 		// Main thread
 		System.out.println("[ResourceEventScrambler] Running Scrambler");
-		new Main();
 		getConfigValues();
 		List<File> resources = listf("resources");
 		File resourceDir = new File("resources");
@@ -143,7 +194,7 @@ final public class Main {
 			if (f.getName().toLowerCase().contains(".lua")) {
 				// It's a Lua file
 				if (!f.getName().contains("__resource") && !f.getName().contains("fxmanifest")) {
-					if (isBlacklistedFile(f)) {
+					if(isBlacklistedFile(f)) {
 						System.out.println("[ResourceEventScrambler] Skipped Blacklisted File: " + f.getAbsolutePath());
 						continue;
 					}
@@ -251,7 +302,7 @@ final public class Main {
 			if (f.getName().toLowerCase().contains(".lua")) {
 				// It's a Lua file
 				if (!f.getName().contains("__resource")) {
-					if (isBlacklistedFile(f)) {
+					if(isBlacklistedFile(f)) {
 						System.out.println("[ResourceEventScrambler] Skipped Blacklisted File: " + f.getAbsolutePath());
 						continue;
 					}
